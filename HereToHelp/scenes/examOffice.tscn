@@ -1,0 +1,50 @@
+[gd_scene load_steps=10 format=3 uid="uid://dwx6c34d178l8"]
+
+[ext_resource type="Script" uid="uid://bn0ra2qwcporn" path="res://scripts/exam_office.gd" id="1_7u1wc"]
+[ext_resource type="PackedScene" uid="uid://km17fbgamq" path="res://scenes/scap.tscn" id="2_77v8t"]
+[ext_resource type="PackedScene" uid="uid://bexloqsdc6guq" path="res://scenes/Problems.tscn" id="4_ew7mr"]
+[ext_resource type="PackedScene" uid="uid://cm64o6vt7675l" path="res://scenes/patient.tscn" id="4_lahga"]
+[ext_resource type="PackedScene" uid="uid://bdlxdux7kkjkk" path="res://scenes/Symptom.tscn" id="5_60tqo"]
+[ext_resource type="Texture2D" uid="uid://bmho2iihrgnfa" path="res://assets/office.png" id="5_ew7mr"]
+[ext_resource type="PackedScene" uid="uid://bku6mqc7rl4d5" path="res://scenes/Treatment.tscn" id="6_7wofy"]
+[ext_resource type="PackedScene" uid="uid://vydhk6irum15" path="res://scenes/Malady.tscn" id="7_xfnhu"]
+[ext_resource type="PackedScene" uid="uid://4btwh1rdv545" path="res://scenes/Story.tscn" id="8_pi6rs"]
+
+[node name="ExamOffice" type="Node2D"]
+script = ExtResource("1_7u1wc")
+scap_scene = ExtResource("2_77v8t")
+patient_scene = ExtResource("4_lahga")
+problems_scene = ExtResource("4_ew7mr")
+symptom_scene = ExtResource("5_60tqo")
+treatment_scene = ExtResource("6_7wofy")
+malady_scene = ExtResource("7_xfnhu")
+story_scene = ExtResource("8_pi6rs")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(300, 135)
+scale = Vector2(1, 2)
+texture = ExtResource("5_ew7mr")
+
+[node name="NextTurn" type="Button" parent="."]
+offset_left = 274.0
+offset_top = 277.0
+offset_right = 360.0
+offset_bottom = 320.0
+text = "Next Turn
+"
+
+[node name="TreatmentsMenu" type="MenuButton" parent="."]
+offset_left = 24.0
+offset_top = 281.0
+offset_right = 122.0
+offset_bottom = 312.0
+text = "Treatments"
+
+[node name="Debug" type="RichTextLabel" parent="."]
+offset_left = 13.0
+offset_top = 5.0
+offset_right = 591.0
+offset_bottom = 274.0
+fit_content = true
+
+[connection signal="pressed" from="NextTurn" to="." method="_on_next_turn_pressed"]

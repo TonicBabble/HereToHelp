@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://km17fbgamq"]
+
+[ext_resource type="Script" uid="uid://cxnujqyuo6n2o" path="res://scripts/scap.gd" id="1_py7lk"]
+[ext_resource type="Texture2D" uid="uid://masj8m1tygjs" path="res://assets/Scappi.png" id="2_ei16m"]
+
+[node name="Scap" type="Node2D"]
+script = ExtResource("1_py7lk")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(148, 33)
+scale = Vector2(1, 2)
+texture = ExtResource("2_ei16m")
