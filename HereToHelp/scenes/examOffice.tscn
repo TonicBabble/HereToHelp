@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dwx6c34d178l8"]
+[gd_scene load_steps=11 format=3 uid="uid://dwx6c34d178l8"]
 
 [ext_resource type="Script" uid="uid://bn0ra2qwcporn" path="res://scripts/exam_office.gd" id="1_7u1wc"]
 [ext_resource type="PackedScene" uid="uid://km17fbgamq" path="res://scenes/scap.tscn" id="2_77v8t"]
@@ -9,8 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://bku6mqc7rl4d5" path="res://scenes/Treatment.tscn" id="6_7wofy"]
 [ext_resource type="PackedScene" uid="uid://vydhk6irum15" path="res://scenes/Malady.tscn" id="7_xfnhu"]
 [ext_resource type="PackedScene" uid="uid://4btwh1rdv545" path="res://scenes/Story.tscn" id="8_pi6rs"]
+[ext_resource type="PackedScene" uid="uid://chx7nipj7ts3h" path="res://scenes/Diagnostic.tscn" id="9_60tqo"]
 
-[node name="ExamOffice" type="Node2D"]
+[node name="s" type="Node2D"]
 script = ExtResource("1_7u1wc")
 scap_scene = ExtResource("2_77v8t")
 patient_scene = ExtResource("4_lahga")
@@ -19,9 +20,10 @@ symptom_scene = ExtResource("5_60tqo")
 treatment_scene = ExtResource("6_7wofy")
 malady_scene = ExtResource("7_xfnhu")
 story_scene = ExtResource("8_pi6rs")
+diagnostic_scene = ExtResource("9_60tqo")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(300, 135)
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(269, 154)
 scale = Vector2(1, 2)
 texture = ExtResource("5_ew7mr")
 
@@ -43,8 +45,28 @@ text = "Treatments"
 [node name="Debug" type="RichTextLabel" parent="."]
 offset_left = 13.0
 offset_top = 5.0
-offset_right = 591.0
-offset_bottom = 274.0
+offset_right = 549.0
+offset_bottom = 190.0
+scale = Vector2(0.5, 0.5)
 fit_content = true
+
+[node name="DiagnosticsMenu" type="MenuButton" parent="."]
+offset_left = 466.0
+offset_top = 283.0
+offset_right = 563.0
+offset_bottom = 314.0
+text = "Diagnostics"
+
+[node name="histSanity" type="Line2D" parent="."]
+width = 1.0
+default_color = Color(1.732707e-06, 0.51518387, 0.6813418, 1)
+
+[node name="histHumour" type="Line2D" parent="."]
+width = 1.0
+default_color = Color(0.6677555, 0.07324753, 0.44378835, 1)
+
+[node name="histRight" type="Line2D" parent="."]
+width = 1.0
+default_color = Color(1, 0.8, 0.11372549, 1)
 
 [connection signal="pressed" from="NextTurn" to="." method="_on_next_turn_pressed"]

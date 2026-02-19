@@ -32,11 +32,15 @@ var treatments: Array[Treatment]
 var symptoms: Array[Symptom]
 var maladies: Array[Malady]
 var stories: Array[Story]
+var diagnostics: Array[Diagnostic]
 
 var sanity: int = 10
 var humour: int = 10
 var right: int = 10
 
+var turn: int = 0
+
+var visit_freq = 1
 
 
 
@@ -46,6 +50,8 @@ var right: int = 10
 
 #problems is an ordered list. 
 var _problems = []
+var _diagnosis_history: Array[Dictionary]
+
 
 
 # =========================
@@ -88,51 +94,72 @@ func _flatten_problems() -> bool:
 	_problems = _problems.filter(func(p):
 		return p.ttl >= 1
 	)
+	
+		
 	stories = []
 	symptoms = []
 	maladies = []
 	treatments = []
+	diagnostics = []
 	
-	for problem in _problems:
-		match problem.type:
-			"Story": 
-				stories.append(problem as Story)
-			"Symptom": 
-				symptoms.append(problem as Symptom)
-			"Malady": 
-				maladies.append(problem as Malady)
-			"Treatment": 
-				treatments.append(problem as Treatment)
+	if _problems.size()>0:
+		
+		for problem in _problems:
+			match problem.type:
+				"Story": 
+					if !stories.has(problem as Story):
+						stories.append(problem as Story)
+				"Symptom": 
+					# symptoms don't stack
+					if !symptoms.has(problem as Symptom):
+						symptoms.append(problem as Symptom)
+				"Malady": 
+					# maladies don't stack
+					if !maladies.has(problem as Malady):
+						maladies.append(problem as Malady)
+				"Treatment": 
+					if !treatments.has(problem as Treatment):
+						treatments.append(problem as Treatment)
+				"Diagnostic":
+					if !diagnostics.has(problem as Diagnostic):
+						diagnostics.append(problem as Diagnostic)
 
-	print("stories:" + str(stories.size()) + " symptoms:" + str(symptoms.size()) + " maladies:"+ str(maladies.size()) + " treatments:" + str(treatments.size()))  
+		print("1 stories:" + str(stories.size()) + " symptoms:" + str(symptoms.size()) + " maladies:"+ str(maladies.size()) + " treatments:" + str(treatments.size())+ " diagnostics:" + str(treatments.size()))  
 
-	for story in stories:
-		for symptom in story.symptoms:
-			self._add_problem(symptom)
-		for malady in story.maladies:
-			self._add_problem(malady)	
-		for treatment in story.treatments:
-			self._add_problem(treatment)
-			
-	
-	
-	for symptom in symptoms:
-		for treatment in treatments:
-			if symptom.treatments.has(treatment):
-				_problems.erase(symptom)
+		for diagnostic in diagnostics:
+			for symptom in diagnostic.symptoms:
+				self.add_problem(symptom)
 				
-	for malady in maladies:
-		var treatment_found = false
-		for treatment in treatments:
-			if malady.treatments.has(treatment):
-				treatment_found=true
-		if	treatment_found:
-			_problems.erase(malady)
-		else:
-			for symptom in malady.symptoms:	
+		
+		for story in stories:
+			for symptom in story.symptoms:
 				self._add_problem(symptom)
+			for malady in story.maladies:
+				self._add_problem(malady)	
+			for treatment in story.treatments:
+				self._add_problem(treatment)
+				
+		
+		
+		for symptom in symptoms:
+			
+			for treatment in treatments:
+				if symptom.treatments.has(treatment):
+					_problems.erase(symptom)
+					
+		for malady in maladies:
+			var treatment_found = false
+			for treatment in treatments:
+				if malady.treatments.has(treatment):
+					treatment_found=true
+			if	treatment_found:
+				_problems.erase(malady)
+			else:
+				for symptom in malady.symptoms:	
+					self._add_problem(symptom)
 
-	## _problems needs to sort with the other arrays in a predicatable order (story -> treatments -> symptoms -> malady )
+		print("stories:" + str(stories.size()) + " symptoms:" + str(symptoms.size()) + " maladies:"+ str(maladies.size()) + " treatments:" + str(treatments.size())+ " diagnostics:" + str(treatments.size()))  
+		## _problems needs to sort with the other arrays in a predicatable order (story -> treatments -> symptoms -> malady )
 	
 		
 	return true
@@ -146,12 +173,53 @@ func _add_problems(problems: Array[Problem] ) -> bool:
 		_add_problem(problem)
 	return true
 
+
+func _record_diagnostics() -> bool:
+	
+	var sanityCaptured: bool = false
+	var humourCaptured: bool = false
+	var rightCaptured: bool = false
+	
+	var results = []
+	for diagnostic in diagnostics:
+		print(turn, diagnostic.name, diagnostic.measures)
+		var diag_result = {}
+		print(diagnostic.freq, diagnostic.measures.size())
+		if (turn % diagnostic.freq == 0 && diagnostic.measures.size()>0):
+			diag_result["turn"] = turn
+			for measure in diagnostic.measures:
+				match measure:
+					"Sanity": 
+						if !sanityCaptured:
+							diag_result["Sanity"] = sanity
+							sanityCaptured = true
+					"Humour": 
+						if !humourCaptured:
+							diag_result["Humour"] = humour
+							humourCaptured = true
+					"Right": 
+						if !rightCaptured:
+							diag_result["Right"] = right
+							rightCaptured = true
+			if diag_result.keys().size()>1:
+				results.append(diag_result)
+	if results.size()>0:
+		for result in results:
+			_diagnosis_history.append(result)			
+			if _diagnosis_history.size() > 100:
+				_diagnosis_history.pop_front()
+		
+	return true	
+	
+
 func _progress_turn(turns: int) -> void:
 	while(turns>0):
 		turns -= 1
+		turn += 1
+		
 		#story affects
 		_flatten_problems()
-		
+		_record_diagnostics()
 		_problems.map(self._apply_problem)
 		
 		#treatment affects

@@ -10,18 +10,35 @@ class_name HereToHelp
 @export var treatment_scene: PackedScene
 @export var malady_scene: PackedScene
 @export var story_scene: PackedScene
+@export var diagnostic_scene: PackedScene
 
 @onready var treatment_menu: MenuButton = $TreatmentsMenu
 @onready var treatment_popup: PopupMenu = treatment_menu.get_popup()
 
+@onready var diagnostic_menu: MenuButton = $DiagnosticsMenu
+@onready var diagnostic_popup: PopupMenu = diagnostic_menu.get_popup()
+
 @onready var debug_label: RichTextLabel = $Debug
+
+@onready var histSanity: Line2D = $histSanity
+@onready var histHumour: Line2D = $histHumour
+@onready var histRight: Line2D = $histRight
 
 var symptoms: Array[Symptom] = []
 var maladies: Array[Malady] = []
 var treatments: Array[Treatment] = []
 var stories: Array[Story] = []
+var diagnostics: Array[Diagnostic] = []
 
 var current_patient: Patient
+
+var turn: int = 0
+
+var chartMinX: float = 333
+var chartMinY: float = 22
+
+var chartMaxX: float = 340
+var chartMaxY: float = 27
 
 func _ready() -> void:
 	
@@ -44,8 +61,12 @@ func _ready() -> void:
 	print("maladies made! : ", str(maladies.size()))
 	buildStoriesList()
 	print("stories made! : ", str(stories.size()))
+	buildDiagnosticList()
+	print("diagnostics made! : ", str(diagnostics.size()))
 	
-	patient1.add_problem(stories[randi() % stories.size()])
+	#patient1.add_problem(stories[randi() % stories.size()])
+	
+
 	
 	patient1._progress_turn(1)
 
@@ -65,7 +86,7 @@ func buildTreatmentsList() -> void:
 				"Right": new_treatment.right_mod = 1
 			treatments.append(new_treatment) 
 			treatment_popup.add_item(new_treatment.name)
-			treatment_popup.id_pressed.connect(_on_menu_item_pressed)
+			treatment_popup.id_pressed.connect(_on_treatment_item_pressed)
 
 	
 
@@ -146,23 +167,83 @@ func buildStoriesList() -> void:
 			new_story.maladies.append(maladies[randi() % maladies.size()])
 			stories.append(new_story)
 			
-
+func buildDiagnosticList() -> void:
+	var elements:Array[String] = ["Sanity", "Humours", "Right"]
+	var id: int = 0
+	for element in elements:
+		for i in [1,2,3]:
+			id += 1
+			var new_diagnostic = diagnostic_scene.instantiate() as Diagnostic
+			new_diagnostic.name = "Cursed diagnostic " + str(id)
+			new_diagnostic.symptoms.append(symptoms[randi() % symptoms.size()])
+			new_diagnostic.freq = 4-i
+			new_diagnostic.ttl = 12
+			match element:
+				"Sanity": new_diagnostic.sanity_mod = i
+				"Humours": new_diagnostic.humour_mod = i
+				"Right": new_diagnostic.right_mod = i
+				
+					
+			new_diagnostic.measures = [element]
+			diagnostics.append(new_diagnostic)
+			diagnostic_popup.add_item(new_diagnostic.name)
+			diagnostic_popup.id_pressed.connect(_on_diagnostic_item_pressed)
 
 func _on_next_turn_pressed() -> void:
 	current_patient._progress_turn(1)
-	var current_patient_stats = str(current_patient.name)
+	turn += 1
+
+	
+	_build_histograms()
 	
 	var stats = current_patient._problems.map(func(p):
 		return p.get_stats()
 	)
 	debug_label.text = "\n".join(stats)
 	
+	
 	pass # Replace with function body.
 
-func _on_menu_item_pressed(index: int):
+func _on_treatment_item_pressed(index: int):
 	var selection = treatment_popup.get_item_text(index)
 	var treat = treatments.filter(func(p):
 		return p.name == selection
 	)
 	if treat:
 		current_patient.add_problem(treat[0])
+		
+func _on_diagnostic_item_pressed(index: int):
+	var selection = diagnostic_popup.get_item_text(index)
+	var diag = diagnostics.filter(func(p):
+		return p.name == selection
+	)
+	if diag:
+		current_patient.add_problem(diag[0])
+		
+func _build_histograms():
+	histSanity.clear_points()
+	histHumour.clear_points()
+	histRight.clear_points()
+	
+	if current_patient._diagnosis_history.size()>0:
+		var step = 0
+		var usable_history = current_patient._diagnosis_history.slice(-21,-1)
+		
+		for diag in usable_history:
+			if step < 20:
+				step += 1
+			for key in diag.keys():
+				if key != "turn":
+					var x:float = chartMinX + (step*10) 
+					var y:float = 0
+					y = chartMinY + diag[key]/10.00
+					match key:
+						"Sanity": 
+							histSanity.add_point(Vector2(x,y))
+						"Humour": 
+							histHumour.add_point(Vector2(x,y+20))
+						"Right": 
+							histRight.add_point(Vector2(x,y+40))
+							
+						
+					
